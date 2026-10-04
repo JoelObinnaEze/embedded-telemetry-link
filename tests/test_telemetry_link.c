@@ -46,6 +46,33 @@ static void round_trip_preserves_frame(void) {
     CHECK(memcmp(output.payload, input.payload, input.payload_length) == 0);
 }
 
+static void pico_demo_frame_round_trips_as_expected(void) {
+    const etl_frame_t input = {
+        .version = ETL_PROTOCOL_VERSION,
+        .message_type = 0x01u,
+        .sequence = 42u,
+        .payload_length = 4u,
+        .payload = {0x09u, 0xc4u, 0x7eu, 0x7du},
+    };
+    uint8_t encoded[ETL_MAX_ENCODED_SIZE];
+    size_t written = 0u;
+    etl_decoder_t decoder = ETL_DECODER_INIT;
+    etl_frame_t output = {0};
+
+    CHECK(etl_encode(&input, encoded, sizeof encoded, &written) == ETL_OK);
+    CHECK(written == 14u);
+    CHECK(encoded[0] == 0x7eu);
+    CHECK(encoded[7] == 0x7du);
+    CHECK(encoded[8] == 0x5eu);
+    CHECK(encoded[9] == 0x7du);
+    CHECK(encoded[10] == 0x5du);
+    CHECK(encoded[13] == 0x7eu);
+    CHECK(push_bytes(&decoder, encoded, written, &output) == ETL_FRAME_READY);
+    CHECK(output.sequence == 42u);
+    CHECK(output.payload_length == input.payload_length);
+    CHECK(memcmp(output.payload, input.payload, input.payload_length) == 0);
+}
+
 static void reserved_bytes_are_escaped(void) {
     const etl_frame_t input = {
         .version = ETL_PROTOCOL_VERSION,
@@ -206,6 +233,7 @@ static void public_functions_reject_null_pointers(void) {
 
 int main(void) {
     round_trip_preserves_frame();
+    pico_demo_frame_round_trips_as_expected();
     reserved_bytes_are_escaped();
     fragmented_input_waits_for_the_closing_delimiter();
     crc_corruption_is_rejected();
@@ -214,6 +242,6 @@ int main(void) {
     encoder_rejects_invalid_sizes();
     malformed_stream_input_is_rejected();
     public_functions_reject_null_pointers();
-    puts("9 protocol tests passed");
+    puts("10 protocol tests passed");
     return 0;
 }

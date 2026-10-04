@@ -18,11 +18,18 @@ static etl_decoder_t decoder = ETL_DECODER_INIT;
 static etl_frame_t received_frame;
 static volatile etl_status_t receive_status = ETL_OK;
 static volatile uint8_t received_sequence;
+static volatile uint32_t received_byte_count;
+static volatile uint8_t received_bytes[ETL_MAX_ENCODED_SIZE];
 
 static void on_uart_rx(void) {
     while (uart_is_readable(UART_ID)) {
+        const uint8_t byte = uart_getc(UART_ID);
+        received_byte_count++;
+        if (received_byte_count <= sizeof received_bytes) {
+            received_bytes[received_byte_count - 1u] = byte;
+        }
         const etl_status_t status =
-            etl_decoder_push(&decoder, uart_getc(UART_ID), &received_frame);
+            etl_decoder_push(&decoder, byte, &received_frame);
         if (status == ETL_FRAME_READY || status == ETL_FRAME_REJECTED) {
             if (status == ETL_FRAME_READY) {
                 received_sequence = received_frame.sequence;
@@ -73,9 +80,25 @@ int main(void) {
     }
 
     receive_status = ETL_OK;
+    received_byte_count = 0u;
+    memset((void *)received_bytes, 0, sizeof received_bytes);
     uart_write_blocking(UART_ID, encoded, written);
     if (!wait_for_status(ETL_FRAME_READY)) {
-        puts("FAIL: valid frame was not decoded; connect GP0 to GP1");
+        if (received_byte_count == 0u) {
+            puts("FAIL: UART0 transmitted, but received 0 bytes; check GP0-to-GP1 wiring");
+        } else {
+            printf("FAIL: UART0 received %lu bytes, but no valid frame was decoded\n",
+                   (unsigned long)received_byte_count);
+            printf("RX:");
+            const size_t captured =
+                received_byte_count < sizeof received_bytes
+                    ? received_byte_count
+                    : sizeof received_bytes;
+            for (size_t i = 0u; i < captured; ++i) {
+                printf(" %02X", received_bytes[i]);
+            }
+            puts("");
+        }
         return 1;
     }
     if (received_sequence != sensor_frame.sequence) {
