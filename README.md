@@ -80,10 +80,6 @@ instructions are in [`hardware/pico/README.md`](hardware/pico/README.md).
 
 ## Scope
 
-The desktop behavior and both Pico targets are build-verified. Physical Pico
-loopback validation is still pending; the repository does not claim hardware
-validation until the UF2 has run on a connected board.
-
 See [SPEC.md](SPEC.md) for the requirements and
 [`include/etl/telemetry_link.h`](include/etl/telemetry_link.h) for the public
 API.
