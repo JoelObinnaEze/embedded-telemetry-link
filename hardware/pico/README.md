@@ -11,28 +11,67 @@ interrupt handler.
 - One jumper wire from GP0 (UART0 TX) to GP1 (UART0 RX)
 
 Make the jumper connection while the board is unpowered.
+On the original Pico, GP0 is physical header pin 1 and GP1 is physical
+header pin 2. They are the two adjacent pins at the top of the left-side
+header when the USB connector is at the top and the component side faces up:
+
+```text
+USB connector
+┌───────────────┐
+│               │
+└───────────────┘
+  1 GP0  ─┐
+  2 GP1  ─┘  jumper
+```
+
+Do not use the pins labeled `3V3`, `GND`, or the physical pin numbers as GPIO
+names. If the test still reports that the frame was not decoded, power off
+the board and use a continuity tester to verify that the jumper conducts
+between the GP0 and GP1 header pins.
 
 ## Build
 
 Install an Arm GNU embedded toolchain, CMake 3.20+, and the
 [Pico SDK 2.3.1](https://github.com/raspberrypi/pico-sdk/tree/2.3.1). Set
 `PICO_SDK_PATH` to the SDK checkout, including its submodules.
+On Windows, also install a CMake-compatible build tool such as Ninja or
+MSYS2 `mingw32-make`.
+
+From PowerShell, for example:
+
+```powershell
+git clone --branch 2.3.1 --recursive https://github.com/raspberrypi/pico-sdk.git C:\pico-sdk
+$env:PICO_SDK_PATH = 'C:\pico-sdk'
+```
+
+Run the following commands from the repository root. If `PICO_SDK_PATH` is
+not set in the current shell, pass it explicitly with
+`-DPICO_SDK_PATH=C:\pico-sdk`.
 
 For an RP2040 Pico:
 
-```sh
-cmake -S hardware/pico -B build-pico -DPICO_BOARD=pico
-cmake --build build-pico
+```powershell
+cmake -S hardware/pico -B build-pico-rp2040 -G "MinGW Makefiles" -DPICO_BOARD=pico
+cmake --build build-pico-rp2040
 ```
 
 For an RP2350 Pico 2, change the configure command:
 
-```sh
-cmake -S hardware/pico -B build-pico -DPICO_BOARD=pico2
-cmake --build build-pico
+```powershell
+cmake -S hardware/pico -B build-pico-rp2350 -G "MinGW Makefiles" -DPICO_BOARD=pico2
+cmake --build build-pico-rp2350
 ```
 
-Both builds produce `build-pico/telemetry_pico.uf2`.
+Both builds produce `telemetry_pico.uf2` in their respective build directory.
+Use a separate build directory for each board family because the Pico SDK
+stores the selected platform in the CMake cache. If a build directory was
+already configured for the other family, remove that specific directory and
+configure it again.
+
+Use the `pico` build for the original Pico/Pico H (RP2040), and the `pico2`
+build for Pico 2/Pico 2 H (RP2350). If the UF2 disappears from the `RPI-RP2`
+drive but the drive comes back after reconnecting, the image was likely built
+for the wrong board family. Rebuild for the board you have.
 
 ## Flash and verify
 
