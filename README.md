@@ -2,7 +2,7 @@
 
 A portable C11 telemetry protocol for UART-like byte streams. It encodes
 versioned sensor frames, escapes reserved bytes, rejects corruption with
-CRC-16/CCITT-FALSE, and resynchronizes after noise—without heap allocation or
+CRC-16/CCITT-FALSE, and resynchronizes after noise, without heap allocation or
 hardware dependencies.
 
 This project demonstrates embedded C, a byte-at-a-time state machine, binary
