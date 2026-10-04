@@ -6,7 +6,8 @@ CRC-16/CCITT-FALSE, and resynchronizes after noise—without heap allocation or
 hardware dependencies.
 
 This project demonstrates embedded C, a byte-at-a-time state machine, binary
-protocol design, defensive input handling, CMake, tests, and CI.
+protocol design, defensive input handling, CMake, tests, CI, and an
+interrupt-driven Raspberry Pi Pico target.
 
 ## Run it
 
@@ -64,15 +65,24 @@ frame.
 - Fixed 64-byte payloads and caller-owned buffers keep the core heap-free.
 - Explicit status values make failures testable without logging side effects.
 - A single streaming state machine handles fragmented input and recovery.
-- The library has no runtime dependencies; one `assert`-based executable covers
-  the protocol behavior.
+- The library has no runtime dependencies; one dependency-free executable
+  covers the protocol behavior.
 - Compiler warnings are errors locally and in GitHub Actions.
+
+## Raspberry Pi Pico hardware demo
+
+The same core library cross-compiles for RP2040 (`PICO_BOARD=pico`) and RP2350
+(`PICO_BOARD=pico2`). The target receives UART0 bytes in an interrupt handler,
+rejects a deliberately corrupted frame, and proves recovery after noise.
+
+Connect GP0 (UART0 TX) to GP1 (UART0 RX) with one jumper. Build and flashing
+instructions are in [`hardware/pico/README.md`](hardware/pico/README.md).
 
 ## Scope
 
-This release is a desktop simulation of firmware-oriented code. It has not been
-validated on physical hardware; UART/HAL integration is intentionally left to a
-board-specific adapter.
+The desktop behavior and both Pico targets are build-verified. Physical Pico
+loopback validation is still pending; the repository does not claim hardware
+validation until the UF2 has run on a connected board.
 
 See [SPEC.md](SPEC.md) for the requirements and
 [`include/etl/telemetry_link.h`](include/etl/telemetry_link.h) for the public

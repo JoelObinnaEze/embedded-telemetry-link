@@ -16,3 +16,23 @@ jobs:
         run: cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build --build-config Release --output-on-failure
+
+  pico-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board: [pico, pico2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: 079c6f39023649b154152db30f1d781e884879bc # Pico SDK 2.3.1
+          path: pico-sdk
+          submodules: recursive
+      - name: Install Arm toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - name: Configure ${{ matrix.board }}
+        run: cmake -S hardware/pico -B build-pico -DPICO_BOARD=${{ matrix.board }} -DPICO_SDK_PATH=${{ github.workspace }}/pico-sdk
+      - name: Build ${{ matrix.board }}
+        run: cmake --build build-pico --config Release

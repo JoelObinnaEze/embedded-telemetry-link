@@ -13,7 +13,7 @@ The repository is recruiter-facing evidence of C, state-machine design, binary p
 - Repository name: `embedded-telemetry-link`.
 - C11 is the main language because it maps cleanly to STM32-class firmware.
 - The core library performs no heap allocation and has a fixed 64-byte payload limit.
-- The first release targets desktop simulation; hardware UART integration is intentionally deferred.
+- The first release targets desktop simulation; an optional Raspberry Pi Pico UART adapter extends it to RP2040 and RP2350 hardware.
 - The project stays separate from the future FPGA repository.
 
 ## Protocol Contract
@@ -65,6 +65,7 @@ On Linux/macOS, run `./build/telemetry_demo` for the final command.
 include/etl/telemetry_link.h  Public types and functions
 src/telemetry_link.c          CRC, encoder, and streaming decoder
 app/demo.c                    Noisy serial-link demonstration
+hardware/pico/                Pico SDK UART interrupt demonstration
 tests/test_telemetry_link.c   Protocol behavior tests
 .github/workflows/ci.yml      Clean build and test
 CMakeLists.txt                Build definition
