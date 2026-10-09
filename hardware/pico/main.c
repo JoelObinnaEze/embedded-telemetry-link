@@ -67,9 +67,11 @@ int main(void) {
     stdio_init_all();
     sleep_ms(2000u);
 
-    uart_init(UART_ID, UART_BAUD_RATE);
+    /* Keep RX idle-high before enabling the UART to avoid a false start bit. */
+    gpio_pull_up(UART_RX_PIN);
     gpio_set_function(UART_TX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_TX_PIN));
     gpio_set_function(UART_RX_PIN, UART_FUNCSEL_NUM(UART_ID, UART_RX_PIN));
+    uart_init(UART_ID, UART_BAUD_RATE);
     irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
     irq_set_enabled(UART_IRQ, true);
     uart_set_irq_enables(UART_ID, true, false);
